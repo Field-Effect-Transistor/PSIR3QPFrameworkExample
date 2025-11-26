@@ -1,0 +1,41 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    env:
+      ARDUINO_LIB_PATH: /home/runner/Arduino/libraries
+      ESP32_BOARD_URL: https://dl.espressif.com/dl/package_esp32_index.json
+    strategy:
+      fail-fast: false
+      matrix:
+        esp32_core_version: ["2.0.17","3.0.5"]
+    runs-on: ubuntu-22.04
+    steps:
+      # Clone the repo
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install Arduino CLI
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install platform
+        run: |
+          arduino-cli core update-index
+          arduino-cli config init
+          arduino-cli config set board_manager.additional_urls "${ESP32_BOARD_URL}"
+          arduino-cli core install esp32:esp32@${{ matrix.esp32_core_version }}
+
+      - name: Install library
+        run: |
+          sudo mkdir -p $ARDUINO_LIB_PATH
+          sudo cp $GITHUB_WORKSPACE/../qpcpp_esp32 -r $ARDUINO_LIB_PATH
+
+      - name: Build Blinky
+        run: |
+          arduino-cli compile --fqbn esp32:esp32:esp32 ./examples/blinky_bsp-esp32
+      - name: Build Dining philosophers
+        run: |
+          arduino-cli compile --fqbn esp32:esp32:esp32 ./examples/dpp_bsp-esp32
