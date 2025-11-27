@@ -3,7 +3,7 @@
 #include "bsp.hpp"
 
 using namespace QP;
-static constexpr unsigned stack_size = 1000;
+static constexpr unsigned stack_size = 4096;
 
 //============================================================================
 // Lab1ActiveObject Class
